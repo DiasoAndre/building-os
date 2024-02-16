@@ -22,11 +22,12 @@ puts:
 
 .loop:
     lodsb               ; loads next character in al
-    or al, al           ; verify if next character is null?
+    or al, al           ; verify if next character is null
     jz .done
 
-    mov ah, 0x0E       	; set ah to 0E hexadecimal
+    mov ah, 0x0E       	; set ah to 0E hexadecimal, setting the function to show one character 
     mov bh, 0           ; set page number to 0
+    mov bl, 0x0F		; set color to white
     int 0x10 ; call bios interrupt
 
     jmp .loop
@@ -40,16 +41,16 @@ puts:
 
 main:
     ; setup data segments
-    mov ax, 0           ; can't set ds/es directly
+    mov ax, 0           
     mov ds, ax
     mov es, ax
     
     ; setup stack
     mov ss, ax
-    mov sp, 0x7C00      ; stack grows downwards from where we are loaded in memory
+    mov sp, 0x7C00      
 
     ; print hello world message
-    mov si, msg_hello
+    mov si, msg_hello ; load the string to send for reg al
     call puts
 
     hlt
