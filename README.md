@@ -1,18 +1,21 @@
-# Building an OS
+# Building an Os
+This system is a training assembly project
 
-The project is a low-level operating system.
-Created with x86_64 assembly using:
 
-- Makefile # used to manage project commands
-- nasm # assembler
-- qemu # used to create the virtual machine
+Run build
 
-To generate the project build, run command below in the project root directory:
+    make
 
-	make
+Run with the command below
 
-The project image will be generated in the "build" directory
+    qemu-system-i386 -fda build/disk.iso
 
-To start the system, simply run the command below: 
+Where was I based?
 
-	qemu-system-i386 -fda build/main_floppy.img
+[fergones](https://www.fergonez.net/articles/sistoper)
+
+
+How do I know what each interrupt does, what arguments it takes, and which registers are involved? I use this website:
+
+[OsDev.org](https://wiki.osdev.org/BIOS)
+
