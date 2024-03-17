@@ -1,45 +1,37 @@
-ASM=nasm
+# Arquivos fonte
+BOOTLOADER_SRC = src/bootloader/boot.asm
+KERNEL_SRC = src/kernel/kernel.asm
 
-SRC_DIR=src
-BUILD_DIR=build
+# Arquivos binários gerados
+BOOTLOADER_BIN = build/bootloader.bin
+KERNEL_BIN = build/kernel.bin
 
-.PHONY: all floppy_image kernel bootloader clean always
+# Imagem de disco
+DISK_IMAGE = build/disk.iso
 
-#
-# Floppy image
-#
-floppy_image: $(BUILD_DIR)/main_floppy.img
+# Alvo padrão: criação da imagem de disco
+all: $(DISK_IMAGE)
 
-$(BUILD_DIR)/main_floppy.img: bootloader kernel
-	dd if=/dev/zero of=$(BUILD_DIR)/main_floppy.img bs=512 count=2880
-	mkfs.fat -F 12 -n "NBOS" $(BUILD_DIR)/main_floppy.img
-	dd if=$(BUILD_DIR)/bootloader.bin of=$(BUILD_DIR)/main_floppy.img conv=notrunc
-	mcopy -i $(BUILD_DIR)/main_floppy.img $(BUILD_DIR)/kernel.bin "::kernel.bin"
+# Cria a imagem de disco
+$(DISK_IMAGE): $(BOOTLOADER_BIN) $(KERNEL_BIN)
+	dd if=/dev/zero of=$(DISK_IMAGE) bs=512 count=2880
+	dd if=$(BOOTLOADER_BIN) of=$(DISK_IMAGE) conv=notrunc
+	dd if=$(KERNEL_BIN) of=$(DISK_IMAGE) seek=1 conv=notrunc
 
-#
-# Bootloader
-#
-bootloader: $(BUILD_DIR)/bootloader.bin
+# Compilação do bootloader
+$(BOOTLOADER_BIN): $(BOOTLOADER_SRC)
+	nasm $(BOOTLOADER_SRC) -o $(BOOTLOADER_BIN)
 
-$(BUILD_DIR)/bootloader.bin: always
-	$(ASM) $(SRC_DIR)/bootloader/boot.asm -f bin -o $(BUILD_DIR)/bootloader.bin
+# Compilação do kernel
+$(KERNEL_BIN): $(KERNEL_SRC)
+	nasm $(KERNEL_SRC) -o $(KERNEL_BIN)
 
-#
-# Kernel
-#
-kernel: $(BUILD_DIR)/kernel.bin
-
-$(BUILD_DIR)/kernel.bin: always
-	$(ASM) $(SRC_DIR)/kernel/main.asm -f bin -o $(BUILD_DIR)/kernel.bin
-
-#
-# Always
-#
-always:
-	mkdir -p $(BUILD_DIR)
-
-#
-# Clean
-#
+# Alvo para limpeza dos arquivos gerados
 clean:
-	rm -rf $(BUILD_DIR)/*
+	rm -f $(BOOTLOADER_BIN) $(KERNEL_BIN) $(DISK_IMAGE)
+
+# Alvo para criar a imagem de disco e limpar os arquivos gerados
+rebuild: clean all
+
+# Alvo de phony para evitar conflitos com arquivos de mesmo nome
+.PHONY: all clean rebuild
